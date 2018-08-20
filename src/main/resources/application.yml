@@ -1,0 +1,25 @@
+server:
+  port: 8080
+spring:
+  converter:
+    office-home: "C:\\Program Files\\LibreOffice"
+  file-service:
+    base-url: http://192.168.183.38:8081/
+    upload-url: upload/file/sample
+    download-url: download/file/sample
+  redis:
+    host: 127.0.0.1
+    password:
+    port: 6379
+    lettuce:
+      shutdown-timeout: 100ms
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-wait: -1ms
+        max-active: 8
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /api-docs
