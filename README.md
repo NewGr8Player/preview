@@ -3,6 +3,7 @@
 - [x] 使用Redis存储，原始文件路径作为Key，转换后PDF的路径作为PDF
 - [x] 使用LibreOffice服务进行Office转PDF
 - [x] 使用JodConverter调用服务进行转换
+- [x] 使用RestTemplate调用接口服务
 - [x] 使用[FileService](https://github.com/NewGr8Player/file-service)存储文件
 
 
