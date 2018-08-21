@@ -5,6 +5,7 @@ import com.xavier.preview.bean.FileResponseData;
 import com.xavier.preview.config.FileServiceConfig;
 import com.xavier.preview.service.ConverterService;
 import com.xavier.preview.singleton.Singleton;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jodconverter.LocalConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +16,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
-import java.net.HttpURLConnection;
+import java.io.File;
 import java.net.URL;
 
 @Service
 public class FileServiceConverterService implements ConverterService {
 
 	public static final String POINT = ".";
-
+	public static final String PATH_SEPARATOR = File.separator;
+	public static final String TEMP_PATH = "temp";
 	@Autowired
 	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
@@ -37,17 +38,13 @@ public class FileServiceConverterService implements ConverterService {
 
 			String suffix = getFilenameSuffix(inputPath);
 			String filename = inputPath.hashCode() + POINT + suffix;
-			String filepath = new File("").getAbsolutePath() + inputPath.hashCode();
+			String filepath = new File("").getAbsolutePath() + PATH_SEPARATOR + TEMP_PATH + PATH_SEPARATOR + inputPath.hashCode();
 
-			downLoadFromUrl(
-					fileServiceConfig.baseUrl + fileServiceConfig.downloadUrl + "?filePath=" + inputPath
-					, filename
-					, filepath);
+			URL url = new URL(fileServiceConfig.baseUrl + fileServiceConfig.downloadUrl + "?filePath=" + inputPath);
+			File file = new File(filepath + PATH_SEPARATOR + filename);
+			FileUtils.copyURLToFile(url, file);
 
-			final File inputFile = new File(filepath + File.separator + filename);
-			/*(
-					fileServiceConfig.baseUrl + fileServiceConfig.downloadUrl + "?filePath=" + inputPath);*/
-
+			final File inputFile = new File(filepath + PATH_SEPARATOR + filename);
 			final File outputFile = new File(inputPath + ".pdf");
 
 			LocalConverter
@@ -61,11 +58,11 @@ public class FileServiceConverterService implements ConverterService {
 			/**
 			 * 上传PDF
 			 */
-			String url = fileServiceConfig.baseUrl + fileServiceConfig.uploadUrl;
+			String uploadFullUrl = fileServiceConfig.baseUrl + fileServiceConfig.uploadUrl;
 			MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
 			param.add("file", new FileSystemResource(outputFile));
 
-			String req = restTemplate.postForObject(url, param, String.class);
+			String req = restTemplate.postForObject(uploadFullUrl, param, String.class);
 
 			FileResponseData fileResponseData = JSON.parseObject(req, FileResponseData.class);
 			if (fileResponseData.isSuccess()) {
@@ -81,6 +78,8 @@ public class FileServiceConverterService implements ConverterService {
 			/* 删除临时文件 */
 			inputFile.delete();
 			outputFile.delete();
+			/* 删除创建的文件夹 */
+			FileUtils.deleteDirectory(new File(filepath));
 
 			return fileResponseData;
 		} catch (Exception e) {
@@ -92,54 +91,6 @@ public class FileServiceConverterService implements ConverterService {
 	@Override
 	public String getPriviewFilePath(String sourcePath) {
 		return redisTemplate.opsForValue().get(sourcePath);
-	}
-
-	/**
-	 * 从URL下载文件
-	 *
-	 * @param urlStr
-	 * @param fileName
-	 * @param savePath
-	 * @throws IOException
-	 */
-	private static void downLoadFromUrl(String urlStr, String fileName, String savePath) throws IOException {
-		URL url = new URL(urlStr);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setConnectTimeout(3 * 1000);
-		conn.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
-		InputStream inputStream = conn.getInputStream();
-		byte[] getData = readInputStream(inputStream);
-		File saveDir = new File(savePath);
-		if (!saveDir.exists()) {
-			saveDir.mkdir();
-		}
-		File file = new File(saveDir + File.separator + fileName);
-		FileOutputStream fos = new FileOutputStream(file);
-		fos.write(getData);
-		if (fos != null) {
-			fos.close();
-		}
-		if (inputStream != null) {
-			inputStream.close();
-		}
-	}
-
-	/**
-	 * 读输入流
-	 *
-	 * @param inputStream
-	 * @return
-	 * @throws IOException
-	 */
-	private static byte[] readInputStream(InputStream inputStream) throws IOException {
-		byte[] buffer = new byte[1024];
-		int len = 0;
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		while ((len = inputStream.read(buffer)) != -1) {
-			bos.write(buffer, 0, len);
-		}
-		bos.close();
-		return bos.toByteArray();
 	}
 
 	/**
