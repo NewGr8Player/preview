@@ -6,6 +6,7 @@ import com.xavier.preview.config.FileServiceConfig;
 import com.xavier.preview.service.ConverterService;
 import com.xavier.preview.singleton.Singleton;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jodconverter.LocalConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +31,12 @@ public class FileServiceConverterService implements ConverterService {
 	@Autowired
 	private FileServiceConfig fileServiceConfig;
 
-
 	@Override
 	public FileResponseData converter(String inputPath) {
 		try {
 			RestTemplate restTemplate = new RestTemplate();
 
-			String suffix = getFilenameSuffix(inputPath);
+			String suffix = FilenameUtils.getExtension(inputPath);
 			String filename = inputPath.hashCode() + POINT + suffix;
 			String filepath = new File("").getAbsolutePath() + PATH_SEPARATOR + TEMP_PATH + PATH_SEPARATOR + inputPath.hashCode();
 
@@ -91,21 +91,5 @@ public class FileServiceConverterService implements ConverterService {
 	@Override
 	public String getPriviewFilePath(String sourcePath) {
 		return redisTemplate.opsForValue().get(sourcePath);
-	}
-
-	/**
-	 * 获取文件后缀名
-	 *
-	 * @param filename
-	 * @return
-	 */
-	private String getFilenameSuffix(String filename) {
-
-
-		String suffix = null;
-		if (StringUtils.isNotBlank(filename) && filename.contains(POINT)) {
-			suffix = filename.substring(filename.lastIndexOf(POINT) + 1).toLowerCase();
-		}
-		return suffix;
 	}
 }
