@@ -36,13 +36,13 @@ public class PreviewApplication {
 
 		private ApiInfo apiInfo() {
 			return new ApiInfo(
-					"JODConverter REST API",
-					"JODConverter REST API for Online conversion. JODConverter automates conversions between office document formats using LibreOffice or Apache OpenOffice.",
+					"Office converter API",
+					"Automates conversions between office document formats using LibreOffice or Apache OpenOffice.",
 					"0.1",
 					"Terms of service",
-					new Contact("John Doe", "www.jodconverter.org", "johndoe@company.com"),
-					"Apache License Version 2.0",
-					"https://www.apache.org/licenses/LICENSE-2.0",
+					new Contact("NewGr8Player", "NewGr8player.gitee.io", "xavier@programmer.net"),
+					"MIT LICENCE",
+					"https://github.com/NewGr8Player/preview/blob/master/LICENSE",
 					Collections.emptyList());
 		}
 	}
