@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <name>preview</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Office convert to PDF</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
