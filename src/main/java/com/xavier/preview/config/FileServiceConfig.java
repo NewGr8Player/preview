@@ -12,4 +12,6 @@ public class FileServiceConfig {
 	public String uploadUrl;
 	@Value("${spring.file-service.download-url}")
 	public String downloadUrl;
+	@Value("${spring.file-service.delete-url}")
+	public String deleteUrl;
 }

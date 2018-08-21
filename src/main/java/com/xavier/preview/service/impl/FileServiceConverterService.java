@@ -36,15 +36,15 @@ public class FileServiceConverterService implements ConverterService {
 			RestTemplate restTemplate = new RestTemplate();
 
 			String suffix = getFilenameSuffix(inputPath);
-			String filename = "temp" + POINT + suffix;
-			String filepath = new File("").getAbsolutePath() + inputPath.replace(POINT + suffix, "");
+			String filename = inputPath.hashCode() + POINT + suffix;
+			String filepath = new File("").getAbsolutePath() + inputPath.hashCode();
 
 			downLoadFromUrl(
 					fileServiceConfig.baseUrl + fileServiceConfig.downloadUrl + "?filePath=" + inputPath
 					, filename
 					, filepath);
 
-			final File inputFile = new File(inputPath + File.separator + filename);
+			final File inputFile = new File(filepath + File.separator + filename);
 			/*(
 					fileServiceConfig.baseUrl + fileServiceConfig.downloadUrl + "?filePath=" + inputPath);*/
 
@@ -69,10 +69,17 @@ public class FileServiceConverterService implements ConverterService {
 
 			FileResponseData fileResponseData = JSON.parseObject(req, FileResponseData.class);
 			if (fileResponseData.isSuccess()) {
+				if (redisTemplate.hasKey(inputPath)) {
+					restTemplate.delete(fileServiceConfig.baseUrl
+							+ fileServiceConfig.deleteUrl
+							+ "?filePath="
+							+ redisTemplate.opsForValue().get(inputPath));
+				}
 				redisTemplate.opsForValue().set(inputPath, fileResponseData.getFilePath());
 			}
 
 			/* 删除临时文件 */
+			inputFile.delete();
 			outputFile.delete();
 
 			return fileResponseData;
