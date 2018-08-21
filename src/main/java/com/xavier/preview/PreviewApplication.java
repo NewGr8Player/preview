@@ -40,7 +40,7 @@ public class PreviewApplication {
 					"Automates conversions between office document formats using LibreOffice or Apache OpenOffice.",
 					"0.1",
 					"Terms of service",
-					new Contact("NewGr8Player", "NewGr8player.gitee.io", "xavier@programmer.net"),
+					new Contact("NewGr8Player", "http://NewGr8player.gitee.io", "xavier@programmer.net"),
 					"MIT LICENCE",
 					"https://github.com/NewGr8Player/preview/blob/master/LICENSE",
 					Collections.emptyList());
