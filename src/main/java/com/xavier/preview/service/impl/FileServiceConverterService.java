@@ -7,7 +7,6 @@ import com.xavier.preview.service.ConverterService;
 import com.xavier.preview.singleton.Singleton;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jodconverter.LocalConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -26,6 +25,7 @@ public class FileServiceConverterService implements ConverterService {
 	public static final String POINT = ".";
 	public static final String PATH_SEPARATOR = File.separator;
 	public static final String TEMP_PATH = "temp";
+
 	@Autowired
 	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
@@ -55,9 +55,7 @@ public class FileServiceConverterService implements ConverterService {
 					.to(outputFile)
 					.execute();
 
-			/**
-			 * 上传PDF
-			 */
+			/* 上传PDF */
 			String uploadFullUrl = fileServiceConfig.baseUrl + fileServiceConfig.uploadUrl;
 			MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
 			param.add("file", new FileSystemResource(outputFile));
@@ -90,6 +88,7 @@ public class FileServiceConverterService implements ConverterService {
 
 	@Override
 	public String getPriviewFilePath(String sourcePath) {
+		//TODO 降级处理，redis不可用或数据不存在时
 		return redisTemplate.opsForValue().get(sourcePath);
 	}
 }
