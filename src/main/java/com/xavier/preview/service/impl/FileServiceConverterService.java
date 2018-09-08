@@ -88,7 +88,10 @@ public class FileServiceConverterService implements ConverterService {
 
 	@Override
 	public String getPriviewFilePath(String sourcePath) {
-		//TODO 降级处理，redis不可用或数据不存在时
+		if(!redisTemplate.hasKey(sourcePath)){
+			converter(sourcePath);
+		}
 		return redisTemplate.opsForValue().get(sourcePath);
+
 	}
 }
