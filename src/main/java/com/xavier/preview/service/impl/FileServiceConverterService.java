@@ -36,6 +36,19 @@ public class FileServiceConverterService implements ConverterService {
 	@Value("${spring.converter.office-home}")
 	private String officePath;
 
+	OfficeManager officeManager;
+
+	/**
+	 * 初始化OfficeManager
+	 */
+	private synchronized void init() throws OfficeException {
+		officeManager = LocalOfficeManager.builder()
+				.officeHome(officePath)
+				.install()
+				.build();
+		officeManager.start();
+	}
+
 	@Autowired
 	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
@@ -45,6 +58,11 @@ public class FileServiceConverterService implements ConverterService {
 	public FileResponseData converter(String inputPath) {
 		logger.info(":==Convert task started.");
 		try {
+			synchronized (FileServiceConverterService.class){/* 避免重复初始化或多个线程抢占资源导致多次初始化异常 */
+				if(null == officeManager){
+					init();
+				}
+			}
 			RestTemplate restTemplate = new RestTemplate();
 
 			String suffix = FilenameUtils.getExtension(inputPath);
@@ -57,12 +75,6 @@ public class FileServiceConverterService implements ConverterService {
 
 			final File inputFile = new File(filepath + PATH_SEPARATOR + filename);
 			final File outputFile = new File(inputPath + ".pdf");
-
-			OfficeManager officeManager = LocalOfficeManager.builder()
-					.officeHome(officePath)
-					.install()
-					.build();
-			officeManager.start();
 
 			LocalConverter
 					.builder()
