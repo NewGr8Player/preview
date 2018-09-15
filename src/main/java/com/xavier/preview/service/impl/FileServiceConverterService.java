@@ -4,11 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.xavier.preview.bean.FileResponseData;
 import com.xavier.preview.config.FileServiceConfig;
 import com.xavier.preview.service.ConverterService;
-import com.xavier.preview.singleton.Singleton;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jodconverter.LocalConverter;
+import org.jodconverter.office.LocalOfficeManager;
+import org.jodconverter.office.OfficeException;
+import org.jodconverter.office.OfficeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -22,9 +27,14 @@ import java.net.URL;
 @Service
 public class FileServiceConverterService implements ConverterService {
 
+	private static final Logger logger = LoggerFactory.getLogger(ConverterService.class);
+
 	public static final String POINT = ".";
 	public static final String PATH_SEPARATOR = File.separator;
 	public static final String TEMP_PATH = "temp";
+
+	@Value("${spring.converter.office-home}")
+	private String officePath;
 
 	@Autowired
 	private RedisTemplate<String, String> redisTemplate;
@@ -33,6 +43,7 @@ public class FileServiceConverterService implements ConverterService {
 
 	@Override
 	public FileResponseData converter(String inputPath) {
+		logger.info(":==Convert task started.");
 		try {
 			RestTemplate restTemplate = new RestTemplate();
 
@@ -47,9 +58,15 @@ public class FileServiceConverterService implements ConverterService {
 			final File inputFile = new File(filepath + PATH_SEPARATOR + filename);
 			final File outputFile = new File(inputPath + ".pdf");
 
+			OfficeManager officeManager = LocalOfficeManager.builder()
+					.officeHome(officePath)
+					.install()
+					.build();
+			officeManager.start();
+
 			LocalConverter
 					.builder()
-					.officeManager(Singleton.INSTANCE.getInstance())
+					.officeManager(officeManager)
 					.build()
 					.convert(inputFile)
 					.to(outputFile)
@@ -78,9 +95,14 @@ public class FileServiceConverterService implements ConverterService {
 			outputFile.delete();
 			/* 删除创建的文件夹 */
 			FileUtils.deleteDirectory(new File(filepath));
-
+			logger.info(":==Convert task finished successfully.");
 			return fileResponseData;
+		} catch (OfficeException e){
+			logger.error(":==Convert task terminated with officeException below.");
+			e.printStackTrace();
+			return new FileResponseData(false);
 		} catch (Exception e) {
+			logger.error(":==Convert task terminated with exception below.");
 			e.printStackTrace();
 			return new FileResponseData(false);
 		}
@@ -88,7 +110,7 @@ public class FileServiceConverterService implements ConverterService {
 
 	@Override
 	public String getPriviewFilePath(String sourcePath) {
-		if(!redisTemplate.hasKey(sourcePath)){
+		if (!redisTemplate.hasKey(sourcePath)) {
 			converter(sourcePath);
 		}
 		return redisTemplate.opsForValue().get(sourcePath);

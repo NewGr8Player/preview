@@ -2,9 +2,9 @@ server:
   port: 8082
 spring:
   converter:
-    office-home: "C:\\Program Files\\LibreOffice"
+    office-home: "/opt/libreoffice6.0"
   file-service:
-    base-url: http://192.168.183.38:8081/
+    base-url: http://192.168.189.48:8081/
     upload-url: upload/file/sample
     download-url: download/file/sample
     delete-url: delete/file
